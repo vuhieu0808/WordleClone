@@ -17,7 +17,8 @@ COLOR_DEFAULT = "#121213"     # Màu nền mặc định của ô
 COLOR_BORDER = "#565758"     # Màu viền của ô
 
 # Màu sắc cho thông báo lỗi
-COLOR_ERROR = "#ff0000"        # Đỏ: thông báo lỗi
+COLOR_ERROR = "#ff0000"
+TEXT_COLOR = "#FFFFFF"
 FONT_ERROR = ("Helvetica", 12, "bold")
 
 class GameApp(tk.Tk):
@@ -31,7 +32,6 @@ class GameApp(tk.Tk):
         self.secretWord = ""  # Từ bí mật
         self.curRow = 0 # Dòng đoán hiện tại
         self.curCol = 0 # Cột đoán hiện tại
-        self.curGuess = "" # Chuỗi đoán hiện tại
 
         self.keyboard = {}
 
@@ -112,21 +112,18 @@ class GameApp(tk.Tk):
         self.bind_all("<KeyPress>", self.key_press_from_keyboard)
     
     def show_toast(self, message):
-
-        # Nếu đang có toast, hủy nó đi trước khi tạo cái mới
         if self.toast_label:
             self.toast_label.destroy()
 
-        # 1. Tạo Label làm "toast"
         self.toast_label = tk.Label(
             self,
             text=message,
             bg=COLOR_ERROR,
-            fg="white",
+            fg=TEXT_COLOR,
             font=FONT_ERROR,
             padx=20,
             pady=10,
-            relief="solid", # Viền
+            relief="solid",
             borderwidth=1,
         )
 
@@ -197,7 +194,6 @@ class GameApp(tk.Tk):
         print(f'Secret word: {self.secretWord}') 
         self.curRow = 0
         self.curCol = 0
-        self.curGuess = ""
         self.reset_game()
 
     def reset_game(self):
@@ -208,7 +204,6 @@ class GameApp(tk.Tk):
             self.keyboard[key].config(bg=COLOR_DEFAULT)
         self.curRow = 0
         self.curCol = 0
-        self.curGuess = ""
 
 if __name__ == "__main__":
     app = GameApp()
