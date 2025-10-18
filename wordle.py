@@ -16,6 +16,10 @@ COLOR_ABSENT = "#3a3a3c"       # Xám: chữ không có trong từ
 COLOR_DEFAULT = "#121213"     # Màu nền mặc định của ô
 COLOR_BORDER = "#565758"     # Màu viền của ô
 
+# Màu sắc cho thông báo lỗi
+COLOR_ERROR = "#ff0000"        # Đỏ: thông báo lỗi
+FONT_ERROR = ("Helvetica", 12, "bold")
+
 class GameApp(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -30,6 +34,8 @@ class GameApp(tk.Tk):
         self.curGuess = "" # Chuỗi đoán hiện tại
 
         self.keyboard = {}
+
+        self.toast_label = None
 
         self.create_widgets()
         self.start_game()
@@ -103,9 +109,34 @@ class GameApp(tk.Tk):
         backspace_button = tk.Button(last_row, text="⌫", command=self.on_backspace, width=6, height=2, bg="#818384", fg=FG_COLOR, font=("Helvetica", 12, "bold"))
         backspace_button.pack(side="left", padx=5)
 
-
         self.bind_all("<KeyPress>", self.key_press_from_keyboard)
     
+    def show_toast(self, message):
+
+        # Nếu đang có toast, hủy nó đi trước khi tạo cái mới
+        if self.toast_label:
+            self.toast_label.destroy()
+
+        # 1. Tạo Label làm "toast"
+        self.toast_label = tk.Label(
+            self,
+            text=message,
+            bg=COLOR_ERROR,
+            fg="white",
+            font=FONT_ERROR,
+            padx=20,
+            pady=10,
+            relief="solid", # Viền
+            borderwidth=1,
+        )
+
+        self.toast_label.place(relx=0.5, rely=0.2, anchor="center")
+
+        self.toast_label.after(500, self.toast_label.destroy)
+
+    def trigger_error_toast(self, text):
+        self.show_toast(f"Lỗi: {text}")
+
     def key_press_from_keyboard(self, event):
         if 'a' <= event.char.lower() <= 'z':
             self.on_key_press(event.char.lower())
@@ -115,13 +146,15 @@ class GameApp(tk.Tk):
             self.on_backspace()
 
     def process_guess(self): # Press Enter
+        if (self.curRow < MAX_GUESSES) and (self.curCol < WORD_LENGTH):
+            self.trigger_error_toast("Chưa nhập đủ chữ cái!")
+            return
         if (self.curCol == WORD_LENGTH) and (self.curRow < MAX_GUESSES):
             guess = ''.join([self.grid[self.curRow][c].cget("text").lower() for c in range(WORD_LENGTH)])
 
             if (guess not in self.wordList):
-                messagebox.showwarning("Cảnh báo", "Từ không hợp lệ!")
-                # for c in range(WORD_LENGTH):
-                #     self.grid[self.curRow][c].config(bg=COLOR_DEFAULT)
+                # messagebox.showwarning("Cảnh báo", "Từ không hợp lệ!")
+                self.trigger_error_toast("Từ không hợp lệ!")
                 return
 
             print(f'Processing guess: {guess}')
@@ -149,7 +182,6 @@ class GameApp(tk.Tk):
                 messagebox.showinfo("Kết thúc!", f"Bạn đã hết lượt đoán! Từ đúng là: {self.secretWord}")
                 return
             
-    
     def on_backspace(self): # Press Backspace
         if (self.curCol > 0) and (self.curRow < MAX_GUESSES):
             self.curCol -= 1
